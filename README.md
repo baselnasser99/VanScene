@@ -34,7 +34,7 @@ VanScene turns the Vancouver Police Department's open crime data into a map you 
 
 ## What I've built
 
-VanScene started as my team's entry to the Build Trilemma Datathon 2026 (see [Credits](#credits)). Since the datathon I've kept building it, and most of the app as it is today is my work:
+VanScene started as my team's entry to the Build Trilemma Datathon 2026 (see [Credits](#credits)). Since the datathon I've kept building it, and most of the app as it is today is my work. To see where it started, the team's [60-second demo](https://youtu.be/DbSOYitXOZY) shows VanScene as it was presented at the datathon, before these changes:
 
 - **The map:** clearer colours and labels, smooth zooming that follows the scroll wheel, a green-to-red heat map that redraws as you zoom so hotspots split and merge, and a calm dark mode.
 - **The look:** a frosted sidebar that slides away, the Fold logo, and raised search and filter fields.
