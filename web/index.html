@@ -42,13 +42,8 @@
         <ul class="suggest" id="hood-list" role="listbox" aria-label="Neighbourhoods" hidden></ul>
       </label>
     </div>
-    <nav class="views" aria-label="View">
-      <button type="button" data-view="map" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg>Map</button>
-      <button type="button" data-view="compare" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="12" r="5"/><circle cx="16" cy="12" r="5"/></svg>Compare</button>
-      <button type="button" data-view="trends" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Trends</button>
-    </nav>
-    <!-- The mirror of the sidebar button: moves these views into a slim rail down the right edge and back (wider screens only) -->
-    <button type="button" class="side-toggle" id="rail-toggle" aria-controls="rail" aria-pressed="false" aria-label="Views in a side rail">
+    <!-- The mirror of the sidebar button: moves the views bar from the bottom into a slim rail down the right edge and back (wider screens only) -->
+    <button type="button" class="side-toggle" id="rail-toggle" aria-controls="rail" aria-pressed="false" aria-label="Views in a side rail" title="Views in a side rail">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M14.5 4v16"/></svg>
     </button>
     <button type="button" class="theme-toggle" id="theme-toggle">
@@ -115,13 +110,13 @@
     <p class="sr-only" id="announce" aria-live="polite"></p>
   </div>
 
-  <!-- The views again as a slim rail down the right edge, when the header's rail button turns it on (and always on phones) -->
+  <!-- Map, Compare, Trends and Search as a floating bar along the bottom of the map, on every screen size -->
   <nav class="panel rail" id="rail" aria-label="View">
-    <button type="button" data-view="map" aria-pressed="true" aria-label="Map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg></button>
-    <button type="button" data-view="compare" aria-pressed="false" aria-label="Compare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="12" r="5"/><circle cx="16" cy="12" r="5"/></svg></button>
-    <button type="button" data-view="trends" aria-pressed="false" aria-label="Trends"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
-    <!-- Phones only: opens the filters sheet with the neighbourhood search ready to type in -->
-    <button type="button" class="rail-search" id="rail-search" aria-label="Search and filters" aria-controls="filters"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+    <button type="button" data-view="map" aria-pressed="true" aria-label="Map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg><span class="rail-label">Map</span></button>
+    <button type="button" data-view="compare" aria-pressed="false" aria-label="Compare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="12" r="5"/><circle cx="16" cy="12" r="5"/></svg><span class="rail-label">Compare</span></button>
+    <button type="button" data-view="trends" aria-pressed="false" aria-label="Trends"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span class="rail-label">Trends</span></button>
+    <!-- Phones: opens the filters sheet with the search ready. Wider screens: jumps into the header search -->
+    <button type="button" class="rail-search" id="rail-search" aria-label="Search a neighbourhood" aria-controls="filters"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="rail-label">Search</span></button>
   </nav>
   <!-- Colours the heat on the graphics card: each pixel's strength (its opacity) picks the ramp's colour and opacity
        from the tables, which app.js fills from the ramp (see heatProto.gradient) -->

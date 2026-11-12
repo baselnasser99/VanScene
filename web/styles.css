@@ -97,15 +97,10 @@ a { color: var(--sea); }
 .head-search .search:hover, .panel .picker[aria-expanded="true"] { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 10px 26px rgba(0, 0, 0, 0.14); }
 @media (hover: hover) { .panel .picker:hover { transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 10px 26px rgba(0, 0, 0, 0.14); } }
 .head-search .search:focus-within { transform: translateY(-1px); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink) 12%, transparent), 0 10px 26px rgba(0, 0, 0, 0.14); }
-.views { flex: none; display: flex; gap: 2px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
-.views button { border: 0; background: transparent; border-radius: 7px; padding: 6px 14px; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
-.views button svg { width: 16px; height: 16px; }
-.views button[aria-pressed="true"] { background: var(--ink); color: var(--surface); font-weight: 700; }
-/* Under the pointer a view lights up and its icon hops up a touch (pointer devices only, so taps don't leave it stuck) */
-.views button svg { transition: transform 0.25s var(--ease); }
+/* Under the pointer a view in the bottom bar lights up and its icon hops up a touch (pointer devices only, so taps don't leave it stuck) */
 @media (hover: hover) {
-  :is(.views, .rail) button:not([aria-pressed="true"]):hover { color: var(--ink); background: var(--hover); }
-  :is(.views, .rail) button:hover svg { transform: translateY(-1.5px) scale(1.12); }
+  .rail button:not([aria-pressed="true"]):hover { color: var(--ink); background: var(--hover); }
+  .rail button:hover svg { transform: translateY(-1.5px) scale(1.12); }
 }
 .theme-toggle { flex: none; display: grid; place-items: center; width: 36px; height: 36px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; cursor: pointer; }
 .theme-toggle:hover { border-color: var(--sea); }
@@ -150,14 +145,16 @@ a { color: var(--sea); }
   #map .leaflet-bottom { transition: right 0.25s ease-in-out; }   /* glides aside with the panels and the rail */
   .app:is([data-view="trends"], [data-view="compare"]) #map .leaflet-bottom.leaflet-right { right: 436px; }   /* the 420px panel + 16px gutter */
   .app[data-view="map"]:has(.area:not(:empty)) #map .leaflet-bottom.leaflet-right { right: 360px; }   /* an open area card: 344px + 16px */
-  /* With the right-edge rail in (see below), all of that steps a further 60px left */
-  body.rail-on .app[data-view="map"] #map .leaflet-bottom.leaflet-right { right: 60px; }
+  /* With the right-edge rail in (see below), the cards step 60px left, so the zoom buttons beside them do too */
   body.rail-on .app:is([data-view="trends"], [data-view="compare"]) #map .leaflet-bottom.leaflet-right { right: 496px; }
   body.rail-on .app[data-view="map"]:has(.area:not(:empty)) #map .leaflet-bottom.leaflet-right { right: 420px; }
 }
 @media (min-width: 761px) and (max-width: 1150px) {
   .app:is([data-view="trends"], [data-view="compare"]) #map .leaflet-bottom.leaflet-right { right: 356px; }   /* the slimmer 340px panels */
   .app[data-view="map"]:has(.area:not(:empty)) #map .leaflet-bottom.leaflet-right { right: 316px; }   /* the slimmer 300px area card */
+  /* The bottom bar centres itself in the slimmer gap too */
+  body:has(.app:is([data-view="trends"], [data-view="compare"])) { --bar-r: 356px; }
+  body:has(.app[data-view="map"] .area:not(:empty)) { --bar-r: 316px; }
   body.rail-on .app:is([data-view="trends"], [data-view="compare"]) #map .leaflet-bottom.leaflet-right { right: 416px; }
   body.rail-on .app[data-view="map"]:has(.area:not(:empty)) #map .leaflet-bottom.leaflet-right { right: 376px; }
 }
@@ -202,6 +199,12 @@ a { color: var(--sea); }
   .site-head::after { content: ""; position: absolute; left: var(--side-w); right: 0; bottom: 0; border-bottom: 1px solid var(--glass-edge); transition: left 0.25s ease-in-out, right 0.25s ease-in-out; }
   body.side-hidden .site-head::after { left: 0; }
   .site-head .theme-toggle { background: transparent; }
+  /* The search sits in the true middle of the header, lined up with the views bar at the bottom */
+  .head-search { position: absolute; z-index: 1; left: 50%; top: 10px; width: min(420px, calc(100% - 440px)); transform: translateX(-50%); }
+  /* (The z-index: the centring transform keeps its list's own z-index inside it, so without this the header's
+     bottom line, drawn later, ran across the open neighbourhood list) */
+  .head-search .search { flex: 1 1 auto; }
+  #rail-toggle { margin-left: auto; }   /* the search no longer pushes the right-hand buttons over, so the first of them holds them in the corner */
   /* The filters are a drawer docked to the left edge, flush under the header: as tall as their content, rounded only
      at the free corner. The header's sidebar button (or the name) slides it away to give the map the whole width */
   .filters { top: var(--top); left: 0; max-height: calc(100% - var(--top)); border-width: 0 1px 1px 0; border-radius: 0 0 16px 0; }
@@ -212,20 +215,55 @@ a { color: var(--sea); }
   /* The name folds away into the mark as the drawer goes, and unfolds as it comes back */
   .wm-text { transition: max-width 0.25s ease-in-out, margin-left 0.25s ease-in-out, opacity 0.2s ease-in-out; }
   body.side-hidden .wm-text { max-width: 0; margin-left: 0; opacity: 0; }
-  /* The views' slim rail down the right edge, in every view while the header's rail button has it on (rail-on). While
-     it's in, the panels, zoom buttons and credits step left to clear it, and the header's views fade out so they're
-     never shown twice */
+  /* Map, Compare, Trends and Search as a floating pill of icons along the bottom, the same bar as on phones. It sits
+     in the middle of the screen, nudged aside only when the filters drawer (--bar-l) or a card down the right
+     (--bar-r) would otherwise cover it, and glides along as they open and close. The open view sits in a soft inner pill */
+  body { --bar-l: var(--side-w); --bar-r: 0px; }
+  body.side-hidden { --bar-l: 0px; }
+  body:has(.app:is([data-view="trends"], [data-view="compare"])) { --bar-r: 436px; }   /* the 420px panel + 16px gutter */
+  body:has(.app[data-view="map"] .area:not(:empty)) { --bar-r: 360px; }   /* an open area card: 344px + 16px */
+  .rail { display: flex; gap: 4px; z-index: 12; bottom: 24px; left: clamp(calc(var(--bar-l) + 142px), 50%, calc(100% - var(--bar-r) - 142px)); transform: translateX(-50%);
+    padding: 5px; border-radius: 999px; box-shadow: var(--control-shadow); }
+  .panel.rail { transition: left 0.25s ease-in-out, background-color 0.3s, border-color 0.3s; }   /* beats .panel's own list */
+  .rail button, .rail .rail-search { display: grid; width: 58px; height: 44px; border-radius: 999px; background: transparent; }
+  .rail button svg { width: 22px; height: 22px; }
+  .rail button[aria-pressed="true"] { background: color-mix(in srgb, var(--ink) 16%, transparent); color: var(--ink); }
+  .rail button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  /* The header's rail button (rail-on) moves the bar into a slim rail docked to the right edge, flush under the
+     header: as tall as its buttons and rounded only at the free corner, the mirror of the filters drawer. Being
+     short, it leaves the zoom buttons and credits where they are; only an open card steps left to clear it */
   body { --rail-w: 60px; }
-  .rail { display: flex; flex-direction: column; align-items: center; gap: 8px; top: 58px; right: 0; bottom: 0; width: var(--rail-w); padding: 12px 0;
-    border-width: 0 0 0 1px; border-radius: 0; }
-  .panel.rail { transition: transform 0.25s ease-in-out, visibility 0.25s, background-color 0.3s, border-color 0.3s; }   /* beats .panel's own list */
-  body:not(.rail-on) .rail { transform: translateX(calc(100% + 2px)); visibility: hidden; }
-  .app :is(.area, .compare, .trends) { transition: right 0.25s ease-in-out, background-color 0.3s, color 0.3s, border-color 0.3s; }
+  body.rail-on .rail { flex-direction: column; align-items: center; gap: 8px; top: 58px; right: 0; bottom: auto; left: auto; width: var(--rail-w);
+    padding: 12px 0; transform: none; border-width: 0 0 1px 1px; border-radius: 0 0 0 16px; box-shadow: none; }
+  body.rail-on .rail :is(button, .rail-search) { width: 44px; height: 44px; }
+  /* Under the pointer (or with a key moving through it) the rail widens to the left and names each view beside its
+     icon, as social apps' slim sidebars do. Each button becomes a row with its icon held at the right, so the icons
+     stay put as it opens; the open view's soft pill stretches under its name */
+  body.rail-on .panel.rail { transition: width 0.2s var(--ease), left 0.25s ease-in-out, background-color 0.3s, border-color 0.3s; }
+  body.rail-on .rail:is(:hover, :has(:focus-visible)) { width: 172px; box-shadow: var(--control-shadow); }
+  body.rail-on .rail :is(button, .rail-search) { display: flex; flex-direction: row-reverse; align-items: center; justify-content: flex-start; gap: 10px;
+    width: calc(100% - 16px); padding: 0 11px; border-radius: 12px; overflow: hidden; }
+  body.rail-on .rail button svg { flex: none; }
+  .rail-label { display: none; }
+  body.rail-on .rail-label { display: block; white-space: nowrap; font-size: 0.92rem; font-weight: 600; opacity: 0; transition: opacity 0.15s; }
+  body.rail-on .rail:is(:hover, :has(:focus-visible)) .rail-label { opacity: 1; transition-delay: 0.05s; }
+  /* Along the bottom, the same names pop up one at a time instead: a small bubble over the button under the pointer */
+  body:not(.rail-on) .rail button { position: relative; }
+  body:not(.rail-on) .rail-label { display: block; position: absolute; bottom: calc(100% + 12px); left: 50%; transform: translate(-50%, 4px);
+    padding: 5px 10px; border-radius: 8px; background: var(--ink); color: var(--surface); font-size: 0.8rem; font-weight: 600; white-space: nowrap;
+    pointer-events: none; opacity: 0; transition: opacity 0.15s, transform 0.15s var(--ease); }
+  body:not(.rail-on) .rail-label::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border: 5px solid transparent; border-top-color: var(--ink); }
+  body:not(.rail-on) .rail button:focus-visible .rail-label { opacity: 1; transform: translate(-50%, 0); }
+  @media (hover: hover) { body:not(.rail-on) .rail button:hover .rail-label { opacity: 1; transform: translate(-50%, 0); } }
   body.rail-on :is(.area, .compare, .trends) { right: calc(var(--rail-w) + 16px); }
-  body.rail-on #map .leaflet-bottom.leaflet-left { right: var(--rail-w); }
-  .views { transition: opacity 0.25s ease-in-out, visibility 0.25s; }   /* only fades, so the search beside it stays put */
-  body.rail-on .views { opacity: 0; visibility: hidden; }
   body.rail-on .site-head::after { right: var(--rail-w); }   /* header and rail meet as one sheet of glass */
+  /* While the bar flows into the rail or back like slime (rail-morph, see slimeFrames in app.js), its icons fade
+     out and the glass alone changes shape, so nothing inside gets squeezed */
+  .rail button { transition: opacity 0.06s, background-color 0.2s, color 0.2s, transform 0.12s; }
+  body.rail-morph .rail { overflow: hidden; }
+  body.rail-morph .rail > * { opacity: 0; }
+  /* The open card steps aside with the rail, in step with the zoom buttons beside it */
+  .app :is(.area, .compare, .trends) { transition: right 0.25s ease-in-out, background-color 0.3s, color 0.3s, border-color 0.3s; }
   /* Solid where the browser can't blur, or the person has asked for less transparency */
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .site-head, .panel { background: var(--surface); } }
   @media (prefers-reduced-transparency: reduce) { .site-head, .panel { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; } }
@@ -466,9 +504,9 @@ body, .site-head, .panel, .picker, .search { transition: background-color 0.3s, 
    this weaker than Leaflet's zoom transition, which it would otherwise replace */
 :where(.mask-light, .mask-dark) { transition: opacity 0.3s; }
 :root[data-theme="dark"] .mask-light, :root:not([data-theme="dark"]) .mask-dark { opacity: 0 !important; }   /* beats Leaflet's inline opacity */
-.views button, .year-pick button, .day-track button, .btn, .x, .theme-toggle {
+.year-pick button, .day-track button, .btn, .x, .theme-toggle {
   transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.12s; }
-.views button:active, .year-pick button:not(:disabled):active, .day-track button:active, .btn:active, .x:active, .theme-toggle:active { transform: scale(0.96); }
+.year-pick button:not(:disabled):active, .day-track button:active, .btn:active, .x:active, .theme-toggle:active { transform: scale(0.96); }
 /* The filters' hover looks (here and above) are for a mouse or trackpad only: on a touch screen the browser keeps the
    last tapped control "hovered", so a year or time of day just switched off still looked picked */
 @media (hover: hover) {
@@ -499,9 +537,17 @@ body, .site-head, .panel, .picker, .search { transition: background-color 0.3s, 
   .tiles p:nth-child(2) { font-size: 0.94rem; }
   .tiles p:first-child { font-size: 0.7rem; }
   .toast { left: calc(50% - 34px); max-width: max(240px, calc(100% - 688px)); }   /* slimmer panels: 288px left, 356px right */
-  .views button { padding: 6px 9px; }   /* leaves the header search room for its placeholder */
   .area { width: 300px; }
   .compare, .trends { width: 340px; }
+}
+
+/* Narrow wider-screens: with a card open the gap gets tight, so the zoom buttons, the cards and the filters drawer
+   all end above the bottom bar instead of running under it */
+@media (min-width: 761px) and (max-width: 1000px) {
+  #map .leaflet-bottom.leaflet-right .leaflet-control-zoom { margin-bottom: 88px; }
+  .area, .compare { max-height: calc(100% - var(--top) - 104px); }
+  .trends { bottom: 88px; }
+  .filters { max-height: calc(100% - var(--top) - 88px); }
 }
 
 @keyframes cmp-in { from { opacity: 0; transform: translateY(6px) scale(0.98); } }
@@ -511,7 +557,7 @@ body, .site-head, .panel, .picker, .search { transition: background-color 0.3s, 
   /* No header bar: app.js moves the search onto the bottom sheet, the name and theme switch to the sheet's foot and
      the map key onto the map; the views and a search button make a bar along the bottom */
   .site-head { position: absolute; height: 0; padding: 0; border: 0; }
-  .head-search, .side-toggle, .views { display: none; }
+  .head-search, .side-toggle { display: none; }
   .app { overflow: hidden; }   /* the sheet tucked below the screen mustn't make the page scroll */
   .brand-btn { cursor: default; }   /* no sidebar to fold away on phones */
   .filters .brand h1 { font-size: 1.05rem; }
