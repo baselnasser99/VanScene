@@ -174,6 +174,7 @@ a { color: var(--sea); }
 
 .rail { display: none; }   /* shown when wider screens turn it on, and always on phones, where it's the bottom bar */
 .rail .rail-search { display: none; }   /* phones only */
+.rail-label { display: none; }   /* the views' names: shown only on wider screens, on hover (see below) */
 .rail button { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 10px; background: var(--surface-2); color: var(--muted); cursor: pointer;
   transition: background-color 0.2s, color 0.2s, transform 0.12s; }
 .rail button svg { width: 18px; height: 18px; transition: transform 0.25s var(--ease); }
@@ -196,7 +197,7 @@ a { color: var(--sea); }
   .site-head { position: absolute; top: 0; left: 0; right: 0; border-bottom: 0; }
   /* The header's bottom edge stops where the open drawer starts, so the two read as one sheet of glass; it runs
      the whole width again as the drawer slides away */
-  .site-head::after { content: ""; position: absolute; left: var(--side-w); right: 0; bottom: 0; border-bottom: 1px solid var(--glass-edge); transition: left 0.25s ease-in-out, right 0.25s ease-in-out; }
+  .site-head::after { content: ""; position: absolute; left: var(--side-w); right: 0; bottom: 0; border-bottom: 1px solid var(--glass-edge); transition: left 0.25s ease-in-out, right 0.25s ease-in-out, border-color 0.3s; }
   body.side-hidden .site-head::after { left: 0; }
   .site-head .theme-toggle { background: transparent; }
   /* The search sits in the true middle of the header, lined up with the views bar at the bottom */
@@ -210,7 +211,8 @@ a { color: var(--sea); }
   .filters { top: var(--top); left: 0; max-height: calc(100% - var(--top)); border-width: 0 1px 1px 0; border-radius: 0 0 16px 0; }
   /* It slides out past the left edge and back in. The entrance animation must let go once it has played, or its
      held frame would override the slide and the drawer would just pop in and out */
-  .app .filters { transition: transform 0.25s ease-in-out, visibility 0.25s; animation-fill-mode: backwards; }   /* a quick, even slide */
+  /* A quick, even slide; the colours keep the same 0.3s fade as the header, so the two change theme as one sheet */
+  .app .filters { transition: transform 0.25s ease-in-out, visibility 0.25s, background-color 0.3s, color 0.3s, border-color 0.3s; animation-fill-mode: backwards; }
   body.side-hidden .filters { transform: translateX(calc(-100% - 2px)); visibility: hidden; }
   /* The name folds away into the mark as the drawer goes, and unfolds as it comes back */
   .wm-text { transition: max-width 0.25s ease-in-out, margin-left 0.25s ease-in-out, opacity 0.2s ease-in-out; }
@@ -229,6 +231,18 @@ a { color: var(--sea); }
   .rail button svg { width: 22px; height: 22px; }
   .rail button[aria-pressed="true"] { background: color-mix(in srgb, var(--ink) 16%, transparent); color: var(--ink); }
   .rail button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  /* Dark theme: the glass's own tint is close to the dark map's, so the header, drawer, bar and cards sank into it.
+     A lighter tint and a brighter rim lift them all off the map. The floating ones (the bar and the cards) get a
+     deeper shadow too; the header and drawer sit flush to the edges, where a shadow would only split their seam */
+  :root[data-theme="dark"] :is(.site-head, .panel) { --glass: rgba(50, 60, 80, 0.86); --glass-edge: rgba(230, 235, 241, 0.2); }
+  :root[data-theme="dark"] :is(body:not(.rail-on) .rail, .area, .compare, .trends) { box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45), 0 10px 28px rgba(0, 0, 0, 0.4); }
+  /* With the panels lighter, the search box and the crime-type picker (once a step lighter than them) and the zoom
+     buttons (still the old dark card) blended in; each steps up again with its own rim. Shadows are left to their
+     own rules, so the search box's hover and focus looks still work */
+  :root[data-theme="dark"] :is(.head-search .search, .panel .picker) { --search-bg: #414c63; border-color: rgba(230, 235, 241, 0.22); }
+  :root[data-theme="dark"] #map .leaflet-bar { border-color: rgba(230, 235, 241, 0.22); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45), 0 10px 28px rgba(0, 0, 0, 0.4); }
+  :root[data-theme="dark"] #map .leaflet-bar a { background: #3a455b; border-bottom-color: rgba(230, 235, 241, 0.14); }
+  :root[data-theme="dark"] #map .leaflet-bar a:hover { background: #46526a; }
   /* The header's rail button (rail-on) moves the bar into a slim rail docked to the right edge, flush under the
      header: as tall as its buttons and rounded only at the free corner, the mirror of the filters drawer. Being
      short, it leaves the zoom buttons and credits where they are; only an open card steps left to clear it */
@@ -244,7 +258,6 @@ a { color: var(--sea); }
   body.rail-on .rail :is(button, .rail-search) { display: flex; flex-direction: row-reverse; align-items: center; justify-content: flex-start; gap: 10px;
     width: calc(100% - 16px); padding: 0 11px; border-radius: 12px; overflow: hidden; }
   body.rail-on .rail button svg { flex: none; }
-  .rail-label { display: none; }
   body.rail-on .rail-label { display: block; white-space: nowrap; font-size: 0.92rem; font-weight: 600; opacity: 0; transition: opacity 0.15s; }
   body.rail-on .rail:is(:hover, :has(:focus-visible)) .rail-label { opacity: 1; transition-delay: 0.05s; }
   /* Along the bottom, the same names pop up one at a time instead: a small bubble over the button under the pointer */

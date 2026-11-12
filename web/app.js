@@ -1158,6 +1158,9 @@ function panelPadding(bounds) {
   for (const el of document.querySelectorAll(".panel, .site-head")) {   // on wider screens the header floats over the map too
     const rr = el.getBoundingClientRect();
     if (!rr.width || !rr.height || getComputedStyle(el).display === "none") continue;
+    // The views bar along the bottom is narrow but sits in the middle, not a corner: as a corner card it could be
+    // taken for a block over the whole left half, which pushed the city off to the right
+    if (el.id === "rail" && !document.body.classList.contains("rail-on")) { pad.b = Math.max(pad.b, mr.bottom - rr.top); continue; }
     if (rr.width < W * 0.6) {
       const left = rr.left - mr.left < W / 2;
       const side = left ? "l" : "r", across = left ? rr.right - mr.left : mr.right - rr.left;
@@ -2181,7 +2184,8 @@ document.addEventListener("click", (e) => {
   if (performance.now() < swallowClickUntil && e.target.closest(".panel")) { e.preventDefault(); e.stopPropagation(); swallowClickUntil = 0; }
 }, true);
 // Wider screens: the header's sidebar button, or the name beside it, slides the filters drawer away to give the map the
-// whole width, and the name folds down to the mark. The choice is remembered
+// whole width, and the name folds down to the mark. Not remembered: every visit opens with the filters showing,
+// so newcomers see what they can pick before anything else
 function setSidebar(open) {
   document.body.classList.toggle("side-hidden", !open);
   const label = open ? "Hide filters" : "Show filters", brand = $("brand-btn"), live = !isPhone();
@@ -2196,16 +2200,11 @@ function setSidebar(open) {
     ["aria-label", "aria-expanded", "aria-controls", "title"].forEach((a) => brand.removeAttribute(a));
   }
 }
-function toggleSidebar(open) {
-  setSidebar(open);
-  try { localStorage.setItem("sidebar", open ? "open" : "hidden"); } catch (e) {}
-}
-$("side-toggle").addEventListener("click", () => toggleSidebar(document.body.classList.contains("side-hidden")));
-$("brand-btn").addEventListener("click", () => { if (!isPhone()) toggleSidebar(document.body.classList.contains("side-hidden")); });
+$("side-toggle").addEventListener("click", () => setSidebar(document.body.classList.contains("side-hidden")));
+$("brand-btn").addEventListener("click", () => { if (!isPhone()) setSidebar(document.body.classList.contains("side-hidden")); });
 phoneQuery.addEventListener("change", () => setSidebar(!document.body.classList.contains("side-hidden")));
-let startOpen = true;
-try { startOpen = localStorage.getItem("sidebar") !== "hidden"; } catch (e) {}
-setSidebar(startOpen);
+setSidebar(true);
+try { localStorage.removeItem("sidebar"); } catch (e) {}   // clear the choice older versions saved
 // The rail button moves the views bar from the bottom of the map into a slim rail down the right edge, and back.
 // Not remembered: every visit opens with the bar at the bottom, where newcomers look for it first
 function setRail(on) {
