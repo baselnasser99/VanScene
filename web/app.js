@@ -1975,7 +1975,10 @@ function renderAbout() {
   const day = (iso) => new Date(iso.slice(0, 10) + "T12:00:00").toLocaleDateString("en-CA", { year: "numeric", month: "long", day: "numeric" });
   const through = day(d.latestDate);
   // VPD asks sites using GeoDASH to show when their copy was last refreshed, in plain sight rather than inside About
-  $("updated").innerHTML = `Updated ${day(d.generated)} from <a href="https://geodash.vpd.ca/opendata/">VPD GeoDASH</a>. Data through ${through}.`;
+  // VPD's newest data is normally under ten days behind; past two weeks the weekly update has most likely stopped
+  const behind = Math.floor((Date.now() - new Date(d.latestDate + "T12:00:00")) / 864e5);
+  $("updated").innerHTML = `Updated ${day(d.generated)} from <a href="https://geodash.vpd.ca/opendata/">VPD GeoDASH</a>. Data through ${through}.` +
+    (behind > 14 ? ` <strong>This copy is ${behind} days behind and may be out of date; GeoDASH may have newer incidents.</strong>` : "");
   $("about-body").innerHTML = `
     <p>Source: Vancouver Police Department, <a href="https://geodash.vpd.ca/opendata/">GeoDASH open data</a>, for free, non-commercial use only. Data through ${through}. To look up single incidents, use VPD's <a href="https://geodash.vpd.ca/">GeoDASH crime map</a>.</p>
     <p>Shows reported incidents that police confirmed occurred, not all crime. Busy areas show more because more people are there. This is for awareness, not a safety score for any address.</p>
