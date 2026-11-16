@@ -8,6 +8,7 @@ Only the Python standard library is needed.
 """
 
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -137,6 +138,19 @@ class TestBoundaries(unittest.TestCase):
         # Every City area is a VPD neighbourhood; VPD's only extras are the two the app handles itself (see hoodAt)
         self.assertEqual(vpd - names, {"Musqueam", "Stanley Park"})
         self.assertLessEqual(names, vpd)
+
+
+class TestPage(unittest.TestCase):
+    """Catches an older app.js landing on main: a button the page shows but nothing in app.js wires up."""
+
+    def test_every_button_is_used_by_app_js(self):
+        page = (REPO_ROOT / "web" / "index.html").read_text(encoding="utf-8")
+        app = (REPO_ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        ids = re.findall(r'<button[^>]*\bid="([^"]+)"', page)
+        self.assertTrue(ids)
+        for button in ids:
+            with self.subTest(button):
+                self.assertIn(f'"{button}"', app)
 
 
 class TestShapeCheck(unittest.TestCase):
