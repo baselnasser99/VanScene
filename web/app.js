@@ -1119,7 +1119,7 @@ function updateHeat() {
       `${Math.abs(rate - 1) < 0.1 ? "about the same as the average hour" : `about ${rate.toFixed(1)}× the average hour`}.</span>`;
   }
   $("citywide").innerHTML = n
-    ? `<strong data-count="${count}" data-key="city">${fmt(count)}</strong> reported city-wide ${periodLabel()}${share}`
+    ? `<strong data-count="${count}" data-key="city">${fmt(count)}</strong> reported across all of Vancouver ${periodLabel()}${share}`
     : `Pick a year to see reported incidents.`;
   countUp($("citywide"));
 }
