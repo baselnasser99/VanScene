@@ -45,17 +45,19 @@
 }
 :root[data-theme="dark"] {
   /* Deep navy, like the night map's water: surfaces darker and bluer than the map's slate
-     land so they sit clearly above it, the map's label inks for text. The accent and both area rings are that white ink, thin and
-     and neutral, so the heat keeps all the colour */
+     land so they sit clearly above it, the map's label inks for text. The accent is a soft night blue, light mode's
+     water lifted to 4.5:1 on the navy, so the charts and the tip stand apart from the text as they do by day;
+     the area rings stay white ink */
   --ink: #e6ebf1; --muted: #aab3bf; --faint: #959fae; --line: #2f3849;
   --page: #141a26; --surface: #1a2130; --surface-2: #232b3b;
-  --sea: #e6ebf1; --sea-soft: #2c3546; --on-sea: #141a26; --ring: #e6ebf1; --on-ring: #141a26; --circle: var(--ring);
+  --sea: #8cbcff; --sea-soft: #2a4166; --on-sea: #141a26; --ring: #e6ebf1; --on-ring: #141a26; --circle: var(--ring);
   --pin: #0a84ff;
   --a: #7fb0ff; --b: #f29a5c; --on-slot: #141a26;   /* lighter A and B so their numbers keep 4.5:1 on the navy; dark letters on the badges */
   --bar-bg: #2c3546; --map-bg: #2c333d;
   --search-bg: #313b50;
+  --raised: #2d3a52; --raised-hover: #38475f;   /* controls a step up from the frosted panels: search, picker, zoom, views bar */
   --glass: rgba(26, 33, 48, 0.78); --glass-edge: rgba(230, 235, 241, 0.08);
-  --glass-fill: rgba(230, 235, 241, 0.06); --glass-fill-2: rgba(230, 235, 241, 0.11);
+  --glass-fill: rgba(230, 235, 241, 0.1); --glass-fill-2: rgba(230, 235, 241, 0.16);
   --status-bg: rgba(28, 33, 41, 0.92);
   --tile-filter: invert(1) brightness(0.85) contrast(0.85);   /* only used by the fallback raster tiles */
   --control-shadow: 0 1px 3px rgba(10, 14, 20, 0.5), 0 4px 12px rgba(10, 14, 20, 0.3);
@@ -187,6 +189,7 @@ a { color: var(--sea); }
 .rail button:active { transform: scale(0.94); }
 .panel { position: absolute; z-index: 10; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
 .filters { top: 16px; left: 16px; max-height: calc(100% - 32px); width: var(--side-w); padding: 18px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; }
+.side-glass { display: none; }   /* wider screens only: the one pane of glass under the header and the drawer */
 /* Wider screens: the map runs under the header, and the header and every panel are one frosted material, so they
    read as a single layer over the map, whose colours show softly through. Fills inside
    are see-through tints of the ink, and hints use the secondary grey, so text keeps 4.5:1 even over the brightest heat */
@@ -214,6 +217,21 @@ a { color: var(--sea); }
   /* The filters are a drawer docked to the left edge, flush under the header: as tall as their content, rounded only
      at the free corner. The header's sidebar button (or the name) slides it away to give the map the whole width */
   .filters { top: var(--top); left: 0; max-height: calc(100% - var(--top)); border-width: 0 1px 1px 0; border-radius: 0 0 16px 0; }
+  /* Header and drawer are one sheet of glass. A pane of glass blurs only the map under itself, so where two panes
+     met their blurs differed over busy heat and drew a line. Instead one layer under both does the blur for the
+     whole L: the header's strip plus the drawer's column (its height set by app.js), rounded at the drawer's free
+     corner, and the column slides away with the drawer. The header and drawer themselves are clear */
+  .site-head, .filters { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .side-glass { display: block; position: absolute; z-index: 9; top: 0; left: 0; right: 0; height: calc(var(--top) + var(--side-h, 0px)); pointer-events: none;
+    background: var(--glass); -webkit-backdrop-filter: blur(30px) saturate(170%); backdrop-filter: blur(30px) saturate(170%);
+    --x: 0px; --r: 16px;
+    --l: linear-gradient(#000 0 0) 0 0 / 100% var(--top) no-repeat,
+      linear-gradient(#000 0 0) var(--x) 0 / calc(var(--side-w) - var(--r)) 100% no-repeat,
+      linear-gradient(#000 0 0) var(--x) 0 / var(--side-w) calc(100% - var(--r)) no-repeat,
+      radial-gradient(circle at 0 0, #000 calc(var(--r) - 0.5px), #0000 var(--r)) calc(var(--x) + var(--side-w) - var(--r)) 100% / var(--r) var(--r) no-repeat;
+    -webkit-mask: var(--l); mask: var(--l);
+    transition: mask-position 0.25s ease-in-out, -webkit-mask-position 0.25s ease-in-out, background-color 0.3s; }
+  body.side-hidden .side-glass { --x: calc(-1 * var(--side-w) - 2px); }
   /* It slides out past the left edge and back in. The entrance animation must let go once it has played, or its
      held frame would override the slide and the drawer would just pop in and out */
   /* A quick, even slide; the colours keep the same 0.3s fade as the header, so the two change theme as one sheet */
@@ -236,18 +254,23 @@ a { color: var(--sea); }
   .rail button svg { width: 22px; height: 22px; }
   .rail button[aria-pressed="true"] { background: color-mix(in srgb, var(--ink) 16%, transparent); color: var(--ink); }
   .rail button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-  /* Dark theme: the glass's own tint is close to the dark map's, so the header, drawer, bar and cards sank into it.
-     A lighter tint and a brighter rim lift them all off the map. The floating ones (the bar and the cards) get a
+  /* Dark theme: the glass keeps the same see-through navy as on phones, so the map shows through; a brighter rim
+     lifts the header, drawer, bar and cards off the map instead. The floating ones (the bar and the cards) get a
      deeper shadow too; the header and drawer sit flush to the edges, where a shadow would only split their seam */
-  :root[data-theme="dark"] :is(.site-head, .panel) { --glass: rgba(50, 60, 80, 0.86); --glass-edge: rgba(230, 235, 241, 0.2); }
+  :root[data-theme="dark"] :is(.site-head, .panel) { --glass-edge: rgba(230, 235, 241, 0.2); }
   :root[data-theme="dark"] :is(body:not(.rail-on) .rail, .area, .compare) { box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45), 0 10px 28px rgba(0, 0, 0, 0.4); }
-  /* With the panels lighter, the search box and the crime-type picker (once a step lighter than them) and the zoom
-     buttons (still the old dark card) blended in; each steps up again with its own rim. Shadows are left to their
-     own rules, so the search box's hover and focus looks still work */
-  :root[data-theme="dark"] :is(.head-search .search, .panel .picker) { --search-bg: #414c63; border-color: rgba(230, 235, 241, 0.22); }
-  :root[data-theme="dark"] #map .leaflet-bar { border-color: rgba(230, 235, 241, 0.22); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45), 0 10px 28px rgba(0, 0, 0, 0.4); }
-  :root[data-theme="dark"] #map .leaflet-bar a { background: #3a455b; border-bottom-color: rgba(230, 235, 241, 0.14); }
-  :root[data-theme="dark"] #map .leaflet-bar a:hover { background: #46526a; }
+  /* The views bar is how newcomers get around, so in the dark it stands out from the glass: a solid navy a step up
+     (like the search box) with a blue rim, white icons, and the open view in a solid pill of the accent blue */
+  :root[data-theme="dark"] body:not(.rail-on) .rail { background: var(--raised); border-color: rgba(140, 188, 255, 0.35); }
+  :root[data-theme="dark"] body:not(.rail-on) .rail button { color: var(--ink); }
+  :root[data-theme="dark"] body:not(.rail-on) .rail button[aria-pressed="true"] { background: var(--sea); color: var(--on-sea); }
+  /* The search box, the crime-type picker and the zoom buttons are a step up from the glass in its own navy
+     (--raised), each with its own rim. Shadows are left to their own rules, so the search box's hover and focus
+     looks still work */
+  :root[data-theme="dark"] :is(.head-search .search, .panel .picker) { --search-bg: var(--raised); border-color: rgba(230, 235, 241, 0.2); }
+  :root[data-theme="dark"] #map .leaflet-bar { border-color: rgba(230, 235, 241, 0.2); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45), 0 10px 28px rgba(0, 0, 0, 0.4); }
+  :root[data-theme="dark"] #map .leaflet-bar a { background: var(--raised); border-bottom-color: rgba(230, 235, 241, 0.14); }
+  :root[data-theme="dark"] #map .leaflet-bar a:hover { background: var(--raised-hover); }
   /* The header's rail button (rail-on) moves the bar into a slim rail docked to the right edge, flush under the
      header: as tall as its buttons and rounded only at the free corner, the mirror of the filters drawer. Being
      short, it leaves the zoom buttons and credits where they are; only an open card steps left to clear it */
@@ -282,8 +305,8 @@ a { color: var(--sea); }
   /* The open card steps aside with the rail, in step with the zoom buttons beside it */
   .app :is(.area, .compare) { transition: right 0.25s ease-in-out, background-color 0.3s, color 0.3s, border-color 0.3s; }
   /* Solid where the browser can't blur, or the person has asked for less transparency */
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .site-head, .panel { background: var(--surface); } }
-  @media (prefers-reduced-transparency: reduce) { .site-head, .panel { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; } }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .side-glass, .panel { background: var(--surface); } }
+  @media (prefers-reduced-transparency: reduce) { .side-glass, .panel { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; } }
 }
 /* The view panels: a column down the right, so the map stays open, ending 16px above the credit line */
 .area, .compare { top: calc(var(--top) + 16px); right: 16px; overflow-y: auto; padding: 18px; display: none; }
@@ -298,6 +321,7 @@ a { color: var(--sea); }
 .search { position: relative; flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; }
 .search:focus-within { box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink) 12%, transparent), 0 10px 26px rgba(0, 0, 0, 0.14); }   /* a soft ink halo while typing */
 .search input::placeholder { color: var(--faint); opacity: 1; }   /* the browser's own grey was 3.1:1 on dark */
+:root[data-theme="dark"] .search input::placeholder { color: var(--ink); }   /* white on the navy box, so the prompt reads clearly; the magnifier keeps the grey */
 .search svg { flex: none; width: 17px; height: 17px; color: var(--faint); }
 .search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 0.95rem; }
 /* The neighbourhood suggestions: always directly under the search box. It floats, so it is the one thing with a shadow. */
