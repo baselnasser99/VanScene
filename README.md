@@ -53,10 +53,10 @@ VanScene started as my team's entry to the Build Trilemma Datathon 2026 (see [Cr
 
 - **Read the map.** A heat map of reported incidents across the City of Vancouver, from green where reports cluster, through yellow, to red where they are densest; streets with only the odd report stay clear. The colour scale stays the same across years, so 2019 and 2025 can be compared directly.
 - **Filter it.** Pick any years from 2016 on, a crime type (for example "Home break-ins" or "Bike theft"), and a time of day. The day is split into four equal six-hour parts, so they compare fairly. You can also click or drag across single hours on the chart under them.
-- **Look at one spot.** Click anywhere for a summary of what was reported within 500 metres: how it compares with the city average for a circle that size, the most common types, when they happen, and year by year. It also shows offences against a person for the whole neighbourhood the spot is in, since VPD gives those no map location.
+- **Look at one spot.** Click anywhere for a summary of what was reported within 500 metres: the count, how it changed from the same dates last year, the most common types, when they happen, and year by year. It also shows crimes against people (VPD's "offences against a person") for the whole neighbourhood the spot is in, since VPD gives those no map location.
 - **Search a neighbourhood** to jump straight to it.
-- **Compare two areas.** Place A and B, and both are listed side by side: counts, change from the year before, and each area's top crime types with their share of its reports.
-- **See the trend.** Trends shows the whole city year by year and hour by hour, with reports per day.
+- **Compare two places.** Place A (blue) and B (orange), and both are listed side by side with their counts and busiest time of day. One plain sentence says which has more reports, and a table lists their most common crimes with the bigger number of each row in that place's colour.
+- **See the whole city.** With no spot picked, the Vancouver card shows the city's total, the change from last year, its most common crimes, the time of day and year by year. Click "All of Vancouver" on a spot's card to come back to it.
 - **Share what you see.** The link keeps the view, years, crime type, hours and the spots you picked.
 - **Use it your way.** It works on phones (the views sit in a bar at the bottom), with a keyboard, with a screen reader, and in light or dark mode. On wider screens the filters slide away to give the map the whole width.
 
@@ -68,7 +68,7 @@ You've just moved to Vancouver and you're choosing between two apartments, one i
 2. Drag across the evening hours on the time-of-day chart, if evenings are when you'll be out.
 3. Click near the Mount Pleasant apartment to see what's been reported around it and how that compares with the city.
 4. Open **Compare**, then click near the Kitsilano apartment. The two areas line up side by side.
-5. Check **Trends** to see whether one year was unusual.
+5. Close Compare and look at the Vancouver card's year chart to see whether one year was unusual.
 
 Instead of reading Reddit threads or asking about one area at a time, you see both places on the same data, with the source and its limits in the app.
 
@@ -158,7 +158,8 @@ A static site with no framework and no build step. It's deployed on Vercel from 
 | Leaflet and Leaflet.heat, over OpenFreeMap vector tiles drawn by MapLibre | Free and open source, with no API keys or accounts; vector tiles let the map take our own colours and labels |
 | One fixed colour scale for every year and crime type | The same colour means the same amount everywhere, so years and types can be compared |
 | Four equal six-hour parts of the day, compared per hour | Unequal periods made the longest one look busiest just because it was longer |
-| Comparing an area with the city average for the same size of circle | A raw count alone says little; busy places will always show more |
+| Counts with their unit ("193 incidents") and plain sentences, no ratios like "25× the city average" | Testers read a bold multiplier as a safety score and took the city total for the clicked spot's count |
+| One card on the right that always answers the filters: the whole city, or the spot you clicked | Filters on the left and results on the right, so there's one place to look |
 | Map zoom capped at about street level, and a 500 m summary circle | VPD offsets locations, so building-level detail would imply precision the data doesn't have |
 | Plain-language crime type labels (for example "Theft from cars" instead of "Theft from Vehicle") | Newcomers shouldn't need to learn police categories |
 | Points stored column by column in `data.json` | The download is about 45% smaller, which matters most on phones |

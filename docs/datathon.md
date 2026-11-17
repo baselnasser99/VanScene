@@ -42,7 +42,7 @@ A search returns opinions and news stories, not a comparison. Our N of 1 experie
 
 **How VanScene is different**
 - A heat map with area summaries, designed for comparison rather than browsing individual incidents
-- Compare and Trends views that put areas and years side by side
+- A Compare view that puts two places side by side, and year-by-year charts for the city and for each spot
 - Ten years of data, so one unusual year doesn't define a neighbourhood
 - The data source, date range, and limitations are shown in the app
 
