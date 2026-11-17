@@ -2163,6 +2163,8 @@ $("side-toggle").addEventListener("click", () => setSidebar(document.body.classL
 $("brand-btn").addEventListener("click", () => { if (!isPhone()) setSidebar(document.body.classList.contains("side-hidden")); });
 phoneQuery.addEventListener("change", () => setSidebar(!document.body.classList.contains("side-hidden")));
 setSidebar(true);
+// The glass under the header and drawer (styles.css .side-glass) is cut to the drawer's shape, so it follows its height
+new ResizeObserver(([e]) => $("app").style.setProperty("--side-h", `${e.borderBoxSize[0].blockSize}px`)).observe($("filters"));
 try { localStorage.removeItem("sidebar"); } catch (e) {}   // clear the choice older versions saved
 // The rail button moves the views bar from the bottom of the map into a slim rail down the right edge, and back.
 // Not remembered: every visit opens with the bar at the bottom, where newcomers look for it first
