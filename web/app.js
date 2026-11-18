@@ -1279,7 +1279,7 @@ function areaStats(ll) {
 }
 
 // Small HTML pieces
-function typeBars(top, count = 4) {
+function typeBars(top, count = 3) {
   if (!top.length) return `<p class="hint">Nothing reported for these filters.</p>`;
   const max = top[0][1];
   return `<div class="bars">${top.slice(0, count).map(([t, n], i) =>

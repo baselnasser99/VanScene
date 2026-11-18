@@ -196,6 +196,7 @@ a { color: var(--sea); }
 @media (min-width: 761px) {
   body { position: relative; }
   .app { --top: 58px; }
+  body { --r: 16px; }   /* the radius of the drawer's and rail's corners and of the curves where they meet the header */
   /* The material: a strong blur with a colour boost, so the map's colours glow softly through the panel */
   .site-head, .panel { background: var(--glass); border-color: var(--glass-edge);
     -webkit-backdrop-filter: blur(30px) saturate(170%); backdrop-filter: blur(30px) saturate(170%);
@@ -203,9 +204,10 @@ a { color: var(--sea); }
   /* Light theme: the glass lets the darkest heat through, so the grey and accent are a step deeper to keep 4.5:1 over it */
   :root:not([data-theme="dark"]) :is(.site-head, .panel) { --muted: #48525c; --sea: #155a96; }
   .site-head { position: absolute; top: 0; left: 0; right: 0; border-bottom: 0; }
-  /* The header's bottom edge stops where the open drawer starts, so the two read as one sheet of glass; it runs
-     the whole width again as the drawer slides away */
-  .site-head::after { content: ""; position: absolute; left: var(--side-w); right: 0; bottom: 0; border-bottom: 1px solid var(--glass-edge); transition: left 0.25s ease-in-out, right 0.25s ease-in-out, border-color 0.3s; }
+  /* The header's bottom edge stops where the curve into the open drawer starts, so the two read as one sheet of
+     glass; it runs the whole width again as the drawer slides away. Its right end jumps rather than slides, in the
+     same frame the docked rail's curve appears, so the two never show out of line */
+  .site-head::after { content: ""; position: absolute; left: calc(var(--side-w) + var(--r)); right: 0; bottom: 0; border-bottom: 1px solid var(--glass-edge); transition: left 0.25s ease-in-out, border-color 0.3s; }
   body.side-hidden .site-head::after { left: 0; }
   .site-head .theme-toggle { background: transparent; }
   /* The search sits in the true middle of the header, lined up with the views bar at the bottom */
@@ -216,22 +218,48 @@ a { color: var(--sea); }
   #rail-toggle { margin-left: auto; }   /* the search no longer pushes the right-hand buttons over, so the first of them holds them in the corner */
   /* The filters are a drawer docked to the left edge, flush under the header: as tall as their content, rounded only
      at the free corner. The header's sidebar button (or the name) slides it away to give the map the whole width */
-  .filters { top: var(--top); left: 0; max-height: calc(100% - var(--top)); border-width: 0 1px 1px 0; border-radius: 0 0 16px 0; }
+  .filters { top: var(--top); left: 0; max-height: calc(100% - var(--top)); border-width: 0 1px 1px 0; border-radius: 0 0 16px 0;
+    --m: linear-gradient(#000 0 0) 0 0 / calc(100% - 1px) 100% no-repeat, linear-gradient(#000 0 0) 0 var(--r) / 100% 100% no-repeat;
+    -webkit-mask: var(--m); mask: var(--m); }   /* the mask hides the top of its right edge, where the curve below takes over */
   /* Header and drawer are one sheet of glass. A pane of glass blurs only the map under itself, so where two panes
      met their blurs differed over busy heat and drew a line. Instead one layer under both does the blur for the
-     whole L: the header's strip plus the drawer's column (its height set by app.js), rounded at the drawer's free
-     corner, and the column slides away with the drawer. The header and drawer themselves are clear */
+     whole shape: the header's strip, the drawer's column (its height set by app.js) rounded at its free corner, and
+     a curve where the header meets the drawer, so the map's corner there is rounded too. The column slides away
+     with the drawer. The docked rail on the right (rail-on) joins it the same way. The header and drawer are clear */
   .site-head, .filters { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
-  .side-glass { display: block; position: absolute; z-index: 9; top: 0; left: 0; right: 0; height: calc(var(--top) + var(--side-h, 0px)); pointer-events: none;
+  .side-glass { display: block; position: absolute; z-index: 9; top: 0; left: 0; right: 0; height: calc(var(--top) + max(var(--side-h, 0px), var(--rh))); pointer-events: none;
     background: var(--glass); -webkit-backdrop-filter: blur(30px) saturate(170%); backdrop-filter: blur(30px) saturate(170%);
-    --x: 0px; --r: 16px;
+    --x: 0px; --h: var(--side-h, 0px);
+    /* The pieces overlap by a pixel (each column runs up under the strip): pieces that only touched left a faint line
+       where they met on a part-pixel, as at 125% display scaling */
     --l: linear-gradient(#000 0 0) 0 0 / 100% var(--top) no-repeat,
-      linear-gradient(#000 0 0) var(--x) 0 / calc(var(--side-w) - var(--r)) 100% no-repeat,
-      linear-gradient(#000 0 0) var(--x) 0 / var(--side-w) calc(100% - var(--r)) no-repeat,
-      radial-gradient(circle at 0 0, #000 calc(var(--r) - 0.5px), #0000 var(--r)) calc(var(--x) + var(--side-w) - var(--r)) 100% / var(--r) var(--r) no-repeat;
-    -webkit-mask: var(--l); mask: var(--l);
+      linear-gradient(#000 0 0) var(--x) 0 / calc(var(--side-w) - var(--r) + 1px) calc(var(--top) + var(--h)) no-repeat,
+      linear-gradient(#000 0 0) var(--x) 0 / var(--side-w) calc(var(--top) + var(--h) - var(--r) + 1px) no-repeat,
+      radial-gradient(circle at 0 0, #000 calc(var(--r) - 0.5px), #0000 var(--r)) calc(var(--x) + var(--side-w) - var(--r)) calc(var(--top) + var(--h) - var(--r)) / var(--r) var(--r) no-repeat,
+      radial-gradient(circle at 100% 100%, #0000 calc(var(--r) - 0.5px), #000 var(--r)) calc(var(--x) + var(--side-w)) calc(var(--top) - 1px) / var(--r) calc(var(--r) + 1px) no-repeat;
+    /* The docked rail's pieces, the same mirrored. They are always there, just of no size until the rail docks, so
+       the list of pieces never changes length (when it did, the new ones slid in from the corner as an extra animation) */
+    --rh: 0px; --rr: 0px;
+    --lr: linear-gradient(#000 0 0) right 0 top 0 / calc(var(--rail-w) - var(--r) + 1px) calc(var(--top) + var(--rh)) no-repeat,
+      linear-gradient(#000 0 0) right 0 top 0 / var(--rail-w) max(0px, calc(var(--top) + var(--rh) - var(--r) + 1px)) no-repeat,
+      radial-gradient(circle at 100% 0, #000 calc(var(--r) - 0.5px), #0000 var(--r)) right calc(var(--rail-w) - var(--r)) top calc(var(--top) + var(--rail-h) - var(--r)) / var(--rr) var(--rr) no-repeat,
+      radial-gradient(circle at 0 100%, #0000 calc(var(--r) - 0.5px), #000 var(--r)) right var(--rail-w) top calc(var(--top) - 1px) / var(--rr) calc(var(--rr) + 1px) no-repeat;
+    -webkit-mask: var(--l), var(--lr); mask: var(--l), var(--lr);
     transition: mask-position 0.25s ease-in-out, -webkit-mask-position 0.25s ease-in-out, background-color 0.3s; }
-  body.side-hidden .side-glass { --x: calc(-1 * var(--side-w) - 2px); }
+  body.side-hidden .side-glass { --x: calc(-1 * var(--side-w) - var(--r) - 2px); }
+  /* The edge of the curve, lined up with the header's bottom line and the drawer's edge */
+  .site-head::before { content: ""; position: absolute; top: calc(100% - 1px); left: calc(var(--side-w) - 1px); width: calc(var(--r) + 1px); height: calc(var(--r) + 1px); pointer-events: none;
+    border: solid var(--glass-edge); border-width: 1px 0 0 1px; border-top-left-radius: calc(var(--r) + 1px); transition: left 0.25s ease-in-out, border-color 0.3s; }
+  body.side-hidden .site-head::before { left: calc(-2px - var(--r)); }
+  /* The docked rail: the same column and curve, mirrored at the right edge. While it flows in or out (rail-morph)
+     it keeps its own glass, since that glass is the shape that moves */
+  body.rail-on:not(.rail-morph) .side-glass { --rh: var(--rail-h); --rr: var(--r); }
+  body.rail-on:not(.rail-morph) .rail { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; border-width: 0; transition: none; }   /* no fade: the shared glass takes over at once */
+  /* Its edges: down the left from below the curve, round the free corner and along the bottom, then the curve */
+  body.rail-on:not(.rail-morph) .rail::before { content: ""; position: absolute; inset: var(--r) 0 0 0; pointer-events: none;
+    border: solid var(--glass-edge); border-width: 0 0 1px 1px; border-bottom-left-radius: var(--r); }
+  body.rail-on:not(.rail-morph) .rail::after { content: ""; position: absolute; top: -1px; right: calc(100% - 1px); width: calc(var(--r) + 1px); height: calc(var(--r) + 1px); pointer-events: none;
+    border: solid var(--glass-edge); border-width: 1px 1px 0 0; border-top-right-radius: calc(var(--r) + 1px); }
   /* It slides out past the left edge and back in. The entrance animation must let go once it has played, or its
      held frame would override the slide and the drawer would just pop in and out */
   /* A quick, even slide; the colours keep the same 0.3s fade as the header, so the two change theme as one sheet */
@@ -274,7 +302,9 @@ a { color: var(--sea); }
   /* The header's rail button (rail-on) moves the bar into a slim rail docked to the right edge, flush under the
      header: as tall as its buttons and rounded only at the free corner, the mirror of the filters drawer. Being
      short, it leaves the zoom buttons and credits where they are; only an open card steps left to clear it */
-  body { --rail-w: 60px; }
+  /* shortcut: --rail-h is the docked rail's height worked out from its padding, three buttons and gaps below; update it
+     if the rail's contents change. Fixed rather than measured, so the glass under it never chases the slide-in */
+  body { --rail-w: 60px; --rail-h: calc(2 * 12px + 3 * 44px + 2 * 8px); }
   body.rail-on .rail { flex-direction: column; align-items: center; gap: 8px; top: 58px; right: 0; bottom: auto; left: auto; width: var(--rail-w);
     padding: 12px 0; transform: none; border-width: 0 0 1px 1px; border-radius: 0 0 0 16px; box-shadow: none; }
   body.rail-on .rail :is(button, .rail-search) { width: 44px; height: 44px; }
@@ -296,11 +326,11 @@ a { color: var(--sea); }
   body:not(.rail-on) .rail button:focus-visible .rail-label { opacity: 1; transform: translate(-50%, 0); }
   @media (hover: hover) { body:not(.rail-on) .rail button:hover .rail-label { opacity: 1; transform: translate(-50%, 0); } }
   body.rail-on :is(.area, .compare) { right: calc(var(--rail-w) + 16px); }
-  body.rail-on .site-head::after { right: var(--rail-w); }   /* header and rail meet as one sheet of glass */
+  body.rail-on:not(.rail-morph) .site-head::after { right: calc(var(--rail-w) + var(--r)); }   /* header and rail meet as one sheet of glass */
   /* While the bar flows into the rail or back like slime (rail-morph, see slimeFrames in app.js), its icons fade
      out and the glass alone changes shape, so nothing inside gets squeezed */
   .rail button { transition: opacity 0.06s, background-color 0.2s, color 0.2s, transform 0.12s; }
-  body.rail-morph .rail { overflow: hidden; }
+  body.rail-morph .rail { overflow: hidden; transition: none; }   /* and its glass swaps with the shared one at once */
   body.rail-morph .rail > * { opacity: 0; }
   /* The open card steps aside with the rail, in step with the zoom buttons beside it */
   .app :is(.area, .compare) { transition: right 0.25s ease-in-out, background-color 0.3s, color 0.3s, border-color 0.3s; }
@@ -394,7 +424,7 @@ legend { padding: 0; }
 .hint { margin-top: 6px; font-size: 0.8125rem; color: var(--faint); }
 .hint:empty { display: none; }
 .peek { display: none; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
-.panel.collapsed .peek { display: block; }
+@media (max-width: 760px) { .panel.collapsed .peek { display: block; } }   /* folded phone sheets only: a wider screen never shows the card folded */
 /* One line tying the count to the map's colours, with a chip of the heat ramp as its icon */
 .tip.heat-note { margin-top: 12px; color: var(--ink); align-items: center; }
 .tip .swatch { flex: none; width: 18px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--ramp-2), var(--ramp-3), var(--ramp-5)); }
