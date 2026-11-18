@@ -2163,6 +2163,12 @@ $("side-toggle").addEventListener("click", () => setSidebar(document.body.classL
 $("brand-btn").addEventListener("click", () => { if (!isPhone()) setSidebar(document.body.classList.contains("side-hidden")); });
 phoneQuery.addEventListener("change", () => setSidebar(!document.body.classList.contains("side-hidden")));
 setSidebar(true);
+// One screen pixel in CSS pixels (1px at 100% scaling, 0.8px at 125%), so the glass's edge lines stay one pixel wide
+// and crisp; kept up to date when the window moves to a screen with other scaling or the page is zoomed
+(function trackPixel() {
+  document.documentElement.style.setProperty("--dp", `${1 / devicePixelRatio}px`);
+  matchMedia(`(resolution: ${devicePixelRatio}dppx)`).addEventListener("change", trackPixel, { once: true });
+})();
 // The glass under the header and drawer (styles.css .side-glass) is cut to the drawer's shape, so it follows its height
 new ResizeObserver(([e]) => $("app").style.setProperty("--side-h", `${e.borderBoxSize[0].blockSize}px`)).observe($("filters"));
 try { localStorage.removeItem("sidebar"); } catch (e) {}   // clear the choice older versions saved
@@ -2190,6 +2196,18 @@ function slimeFrames(bar, rail, edge) {
     f(1, rail.left, rail.top, rail.width, rail.height, "0 0 0 16px"),
   ];
 }
+// From the moment the drip reaches the header (offset 0.72 in slimeFrames), the shared glass draws it, taking on the
+// same width, height and rounded corner at each later step, while the curve into the header swells in like a
+// meniscus, overshooting a little. Before that the glass has no rail piece and the bar's own glass shows instead
+function dockFrames(bar, rail, r) {
+  const s = (offset, w, h, rr) => ({ offset, "--rw": w + "px", "--rh": h + "px", "--rr": rr + "px" });
+  const c = (offset, k) => ({ offset, "--rf": r * k + "px" });
+  const shape = [s(0, 0, 0, 0), s(0.72, 0, 0, 0), s(0.72, rail.width * 0.75, bar.bottom - rail.top, 30),
+    s(0.86, rail.width * 0.92, rail.height * 1.15, 26), s(0.94, rail.width * 1.06, rail.height * 0.95, 14), s(1, rail.width, rail.height, r)];
+  const curve = [c(0, 0), c(0.72, 0), c(0.8, 1.25), c(0.92, 0.95), c(1, 1)];
+  const own = [{ offset: 0, visibility: "visible" }, { offset: 0.72, visibility: "visible" }, { offset: 0.72, visibility: "hidden" }, { offset: 1, visibility: "hidden" }];
+  return { shape, curve, own };
+}
 // The bar changes shape (a row becomes a column), which CSS can't animate, so the switch moves the glass itself
 // through slimeFrames. People who asked for less motion get the switch at once
 $("rail-toggle").addEventListener("click", () => {
@@ -2197,6 +2215,10 @@ $("rail-toggle").addEventListener("click", () => {
   if (body.classList.contains("rail-morph")) return;   // mid-switch: let it finish
   const on = !body.classList.contains("rail-on");
   if (reduceMotion) { setRail(on); return; }
+  const glass = $("side-glass"), r = parseFloat(getComputedStyle(glass).getPropertyValue("--r"));
+  // Leaving: until the flow starts, the shared glass keeps the rail's shape and the rail's own glass stays hidden
+  const hold = { "--rw": `${rail.offsetWidth}px`, "--rh": `${rail.offsetHeight}px`, "--rr": `${r}px`, "--rf": `${r}px` };
+  if (!on) { for (const k in hold) glass.style.setProperty(k, hold[k]); rail.style.visibility = "hidden"; }
   body.classList.add("rail-morph");   // the icons fade out first
   setTimeout(() => {
     const page = body.getBoundingClientRect(), box = (r) => ({ left: r.left - page.left, top: r.top - page.top,
@@ -2204,9 +2226,19 @@ $("rail-toggle").addEventListener("click", () => {
     const from = box(rail.getBoundingClientRect());
     setRail(on);
     const to = box(rail.getBoundingClientRect());
-    const frames = on ? slimeFrames(from, to, page.width) : slimeFrames(to, from, page.width).reverse().map((k) => ({ ...k, offset: 1 - k.offset }));
-    rail.animate(frames, { duration: 450, easing: "cubic-bezier(0.45, 0.05, 0.35, 1)" })
-      .finished.then(() => body.classList.remove("rail-morph"));   // and fade back in once it has settled
+    const back = (f) => f.reverse().map((k) => ({ ...k, offset: 1 - k.offset }));   // the way out plays the steps in reverse
+    const frames = on ? slimeFrames(from, to, page.width) : back(slimeFrames(to, from, page.width));
+    const timing = { duration: 450, easing: "cubic-bezier(0.45, 0.05, 0.35, 1)" };
+    const dock = on ? dockFrames(from, to, r) : dockFrames(to, from, r), held = { ...timing, fill: "forwards" };
+    const steps = on ? (f) => f : back;
+    // held to the end, so nothing can flash back for a frame before the docked (or undocked) styles take over
+    const parts = [glass.animate(steps(dock.shape), held), glass.animate(steps(dock.curve), held), rail.animate(steps(dock.own), held)];
+    for (const k in hold) glass.style.removeProperty(k);
+    rail.style.removeProperty("visibility");
+    rail.animate(frames, timing).finished.then(() => {
+      body.classList.remove("rail-morph");   // and fade back in once it has settled
+      parts.forEach((p) => p.cancel());
+    });
   }, 60);
 });
 try { localStorage.removeItem("rail"); } catch (e) {}   // clear the choice older versions saved
